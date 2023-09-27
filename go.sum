@@ -1,0 +1,4 @@
+filippo.io/edwards25519 v1.0.0 h1:0wAIcmJUqRdI8IJ/3eGi5/HwXZWPujYXXlkrQogz0Ek=
+filippo.io/edwards25519 v1.0.0/go.mod h1:N1IkdkCkiLB6tki+MYJoSx2JTY9NUlxZE7eHn5EwJns=
+github.com/ubiq/go-ubiq v3.0.1+incompatible h1:7yJwLHnvQ3deanC7k5IXBWikOdbpYUuOxM7eEPnVb2k=
+github.com/ubiq/go-ubiq v3.0.1+incompatible/go.mod h1:CDTbVZC94B833AgkH14z81twfLs7CD5tV8a7vu/CH4U=
