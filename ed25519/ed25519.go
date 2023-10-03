@@ -43,7 +43,7 @@ func (c EdCurve) BasePointGGet() point.Point {
 	return p
 }
 
-func (c EdCurve) AddECPoints(a, b point.Point) point.Point {
+func (c EdCurve) AddPoints(a, b point.Point) point.Point {
 	v := new(edwards25519.Point)
 	a_p := a.Point()
 	b_p := b.Point()

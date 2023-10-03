@@ -42,7 +42,7 @@ func (c ECCurve) BasePointGGet() point.Point {
 	return point
 }
 
-func (c ECCurve) AddECPoints(a, b point.Point) point.Point {
+func (c ECCurve) AddPoints(a, b point.Point) point.Point {
 	x, y := Curve.Curve.Add(a.X(), a.Y(), b.X(), b.Y())
 	p := ECPoint{x, y}
 	return p
@@ -55,6 +55,6 @@ func (c ECCurve) ScalarMult(a point.Point, k big.Int) point.Point {
 }
 
 func (c ECCurve) PointToString(point point.Point) (s string) {
-	s = fmt.Sprintf("%X", point.X()) + " " + fmt.Sprintf("%X", point.Y())
+	s = fmt.Sprintf("%X", point.X()) + fmt.Sprintf("%X", point.Y())
 	return
 }
