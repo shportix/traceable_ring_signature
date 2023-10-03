@@ -1,10 +1,14 @@
 package signature
 
 import (
+	"bufio"
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
+	"log"
 	"math/big"
+	"os"
+	"strconv"
 	"trace_ring_sig/point"
 )
 
@@ -14,6 +18,8 @@ type Curve interface {
 	AddPoints(a, b point.Point) point.Point
 	ScalarMult(a point.Point, k big.Int) point.Point
 	PointToString(point point.Point) (s string)
+	StringToPoint(string) point.Point
+	CurveToString() string
 }
 
 type TraceRingSignature struct {
@@ -23,7 +29,14 @@ type TraceRingSignature struct {
 	I        point.Point
 	C        []big.Int
 	R        []big.Int
-	Q        []*big.Int
+}
+
+func WriteToFile(textWriter *bufio.Writer, s string) {
+	_, err := textWriter.WriteString(s + "\n")
+	if err != nil {
+		log.Fatal(err)
+	}
+	textWriter.Flush()
 }
 
 func SHA256StringToString(message string) (digest string) {
@@ -60,7 +73,6 @@ func Sign(curve Curve, message string, pub_keys []point.Point, s int, prive_key 
 		w[i], _ = rand.Int(rand.Reader, big.NewInt(1).Sub(curve.GetOrder(), big.NewInt(1)))
 		w[i] = big.NewInt(1).Add(w[i], big.NewInt(1))
 	}
-	// fmt.Println("q:    ", q[s])
 	L := make([]point.Point, n)
 	R := make([]point.Point, n)
 	for i := 0; i < n; i++ {
@@ -75,12 +87,8 @@ func Sign(curve Curve, message string, pub_keys []point.Point, s int, prive_key 
 	for i := 0; i < n; i++ {
 		txt += curve.PointToString(L[i]) + curve.PointToString(R[i])
 	}
-	// fmt.Println("txt: ", txt)
 	C := new(big.Int)
 	C.SetString(fmt.Sprintf("%X", SHA256StringToString(txt)), 16)
-	// fmt.Println("C:   ", C)
-	// C.Mod(C, curve.GetOrder())
-	// fmt.Println("C:  ", C)
 	c := make([]big.Int, n)
 	r := make([]big.Int, n)
 	sum := big.NewInt(0)
@@ -91,20 +99,12 @@ func Sign(curve Curve, message string, pub_keys []point.Point, s int, prive_key 
 			r[i] = *q[i]
 		}
 	}
-	// sum = sum.Mod(sum, curve.GetOrder())
-	// fmt.Println("sum: ", sum)
 	c[s] = *sum.Sub(C, sum)
 	c[s] = *c[s].Mod(&c[s], curve.GetOrder())
 	r[s] = *big.NewInt(0).Mul(&c[s], &prive_key)
 	r[s].Sub(q[s], &r[s])
 	r[s].Mod(&r[s], curve.GetOrder())
-	// fmt.Println("x", prive_key.String())
-	// fmt.Println("q", q[s].String())
-	// fmt.Println("r", r[s].String())
-	// fmt.Println("c", c[s].String())
 	C.Mod(C, curve.GetOrder())
-	// fmt.Println("C_m: ", C)
-
 	signature := TraceRingSignature{
 		curve:    curve,
 		message:  message,
@@ -112,7 +112,6 @@ func Sign(curve Curve, message string, pub_keys []point.Point, s int, prive_key 
 		I:        I,
 		C:        c,
 		R:        r,
-		Q:        q,
 	}
 	return signature
 }
@@ -124,7 +123,6 @@ func Verify(signature TraceRingSignature) bool {
 	sum := big.NewInt(0)
 	for i := 0; i < n; i++ {
 		sum.Add(sum, &signature.C[i])
-		// fmt.Println(signature.c[i].String())
 		L[i] = signature.curve.AddPoints(signature.curve.ScalarMult(signature.curve.BasePointGGet(), signature.R[i]), signature.curve.ScalarMult(signature.Pub_keys[i], signature.C[i]))
 		R[i] = signature.curve.AddPoints(signature.curve.ScalarMult(H_p(signature.Pub_keys[i], signature.curve), signature.R[i]), signature.curve.ScalarMult(signature.I, signature.C[i]))
 	}
@@ -132,16 +130,53 @@ func Verify(signature TraceRingSignature) bool {
 	for i := 0; i < n; i++ {
 		txt += signature.curve.PointToString(L[i]) + signature.curve.PointToString(R[i])
 	}
-	// fmt.Println("txt: ", txt)
 	C := new(big.Int)
 	C.SetString(fmt.Sprintf("%X", SHA256StringToString(txt)), 16)
-	// fmt.Println("C:   ", C)
 	C.Mod(C, signature.curve.GetOrder())
-	// fmt.Println("C:   ", C)
 	sum = sum.Mod(sum, signature.curve.GetOrder())
-	// fmt.Println("sum: ", sum)
-	// fmt.Println("////////")
+	res := C.Cmp(sum) == 0
+	if res {
+		var sigFile *os.File
+		_, err := os.Stat("signatures.txt")
+		if err != nil {
+			if os.IsNotExist(err) {
+				sigFile, err = os.Create("signatures.txt")
+				if err != nil {
+					log.Fatal(err)
+				}
+				sigFile.Close()
+			} else {
+				log.Fatal(err)
+			}
+		}
+		sigFile, err = os.OpenFile("signatures.txt", os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer sigFile.Close()
+		textWriter := bufio.NewWriter(sigFile)
 
-	return C.Cmp(sum) == 0
+		WriteToFile(textWriter, signature.message)
+		WriteToFile(textWriter, signature.curve.CurveToString())
+		n := len(signature.Pub_keys)
+		WriteToFile(textWriter, strconv.Itoa(n))
+		for i := 0; i < n; i++ {
+			WriteToFile(textWriter, signature.curve.PointToString(signature.Pub_keys[i]))
+		}
+		WriteToFile(textWriter, signature.curve.PointToString(signature.I))
+		n = len(signature.C)
+		WriteToFile(textWriter, strconv.Itoa(n))
+		for i := 0; i < n; i++ {
+			WriteToFile(textWriter, signature.C[i].String())
+		}
+		n = len(signature.R)
+		WriteToFile(textWriter, strconv.Itoa(n))
+		for i := 0; i < n; i++ {
+			WriteToFile(textWriter, signature.R[i].String())
+		}
+
+	}
+
+	return res
 
 }

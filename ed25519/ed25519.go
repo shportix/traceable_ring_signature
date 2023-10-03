@@ -1,7 +1,9 @@
 package ed25519
 
 import (
+	"encoding/hex"
 	"fmt"
+	"log"
 	"math/big"
 	"trace_ring_sig/point"
 
@@ -26,6 +28,11 @@ func (p EdPoint) Y() *big.Int {
 }
 
 func (p EdPoint) Point() edwards25519.Point {
+	return p.point
+}
+
+func (p EdPoint) SetPoint(point edwards25519.Point) edwards25519.Point {
+	p.point = point
 	return p.point
 }
 
@@ -84,5 +91,21 @@ func (c EdCurve) PointToString(point point.Point) (s string) {
 	point_p := point.Point()
 	point_bytes := point_p.Bytes()
 	s = fmt.Sprintf("%X", point_bytes) + " "
+	return
+}
+
+func (c EdCurve) StringToPoint(s string) (point point.Point) {
+	s_b, err := hex.DecodeString(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	p := *new(edwards25519.Point)
+	p.SetBytes(s_b)
+	point.SetPoint(p)
+	return
+}
+
+func (c EdCurve) CurveToString() (s string) {
+	s = "ed25519"
 	return
 }
