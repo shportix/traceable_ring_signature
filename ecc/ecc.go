@@ -35,10 +35,6 @@ func (p ECPoint) Point() edwards25519.Point {
 	return *new(edwards25519.Point)
 }
 
-func (p ECPoint) SetPoint(point edwards25519.Point) edwards25519.Point {
-	return point
-}
-
 func (c ECCurve) GetOrder() *big.Int {
 	return Curve.Curve.N
 }

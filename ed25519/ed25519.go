@@ -31,11 +31,6 @@ func (p EdPoint) Point() edwards25519.Point {
 	return p.point
 }
 
-func (p EdPoint) SetPoint(point edwards25519.Point) edwards25519.Point {
-	p.point = point
-	return p.point
-}
-
 func (c EdCurve) GetOrder() *big.Int {
 	buf, _ := big.NewInt(0).SetString("27742317777372353535851937790883648493", 0)
 	l := big.NewInt(2)
@@ -90,19 +85,22 @@ func (c EdCurve) ScalarMult(a point.Point, k big.Int) point.Point {
 func (c EdCurve) PointToString(point point.Point) (s string) {
 	point_p := point.Point()
 	point_bytes := point_p.Bytes()
-	s = fmt.Sprintf("%X", point_bytes) + " "
+	s = fmt.Sprintf("%X", point_bytes)
 	return
 }
 
-func (c EdCurve) StringToPoint(s string) (point point.Point) {
+func (c EdCurve) StringToPoint(s string) point.Point {
 	s_b, err := hex.DecodeString(s)
 	if err != nil {
 		log.Fatal(err)
 	}
 	p := *new(edwards25519.Point)
-	p.SetBytes(s_b)
-	point.SetPoint(p)
-	return
+	_, err = p.SetBytes(s_b)
+	if err != nil {
+		log.Fatal(err)
+	}
+	point := EdPoint{point: p}
+	return point
 }
 
 func (c EdCurve) CurveToString() (s string) {
