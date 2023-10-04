@@ -2,6 +2,7 @@ package signature_test
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"math/big"
 	"os"
@@ -158,4 +159,104 @@ func TestVerify(t *testing.T) {
 		t.Errorf("must be 100 invalid signatures")
 	}
 
+}
+
+func TestLink(t *testing.T) {
+	var sigFile, testFile *os.File
+	file_name := "signatures.txt"
+	_, err := os.Stat(file_name)
+	exist := true
+	if err != nil {
+		if os.IsNotExist(err) {
+			exist = false
+		} else {
+			log.Fatal(err)
+		}
+	}
+	if exist {
+		err = os.Remove(file_name)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	sigFile, err = os.Create(file_name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	testFile, err = os.Open("test_secp256k1_link.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer testFile.Close()
+	_, err = io.Copy(sigFile, testFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = sigFile.Sync()
+	if err != nil {
+		log.Fatal(err)
+	}
+	sigFile.Close()
+	sigFile, err = os.Open("signatures.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer sigFile.Close()
+	scanner := bufio.NewScanner(sigFile)
+	var (
+		message  string
+		curve    signature.Curve
+		n        int
+		Pub_keys []point.Point
+		I        point.Point
+		C        []big.Int
+		R        []big.Int
+	)
+	scanner.Scan()
+	message = scanner.Text()
+	scanner.Scan()
+	curve = signature.StringToCurve(scanner.Text())
+	scanner.Scan()
+	n, err = strconv.Atoi(scanner.Text())
+	if err != nil {
+		log.Fatal(err)
+	}
+	for i := 0; i < n; i++ {
+		scanner.Scan()
+		Pub_keys = append(Pub_keys, curve.StringToPoint(scanner.Text()))
+	}
+	scanner.Scan()
+	I = curve.StringToPoint(scanner.Text())
+	scanner.Scan()
+	n, err = strconv.Atoi(scanner.Text())
+	if err != nil {
+		log.Fatal(err)
+	}
+	for i := 0; i < n; i++ {
+		scanner.Scan()
+		c_i, _ := big.NewInt(0).SetString(scanner.Text(), 0)
+		C = append(C, *c_i)
+	}
+	scanner.Scan()
+	n, err = strconv.Atoi(scanner.Text())
+	if err != nil {
+		log.Fatal(err)
+	}
+	for i := 0; i < n; i++ {
+		scanner.Scan()
+		r_i, _ := big.NewInt(0).SetString(scanner.Text(), 0)
+		R = append(R, *r_i)
+	}
+	linked_sig := signature.TraceRingSignature{
+		Message:  message,
+		Curve:    curve,
+		Pub_keys: Pub_keys,
+		I:        I,
+		C:        C,
+		R:        R,
+	}
+	sigs := signature.Link(linked_sig)
+	if len(sigs) != 100 {
+		t.Errorf("Link function faild")
+	}
 }
