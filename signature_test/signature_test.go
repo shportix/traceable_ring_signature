@@ -12,11 +12,16 @@ import (
 )
 
 func TestVerify(t *testing.T) {
-	testFile, err := os.Open("test_secp256k1_true.txt")
+	testFileTrue, err := os.Open("test_secp256k1_true.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer testFile.Close()
+	defer testFileTrue.Close()
+	testFileFalse, err := os.Open("test_secp256k1_false.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer testFileFalse.Close()
 	var (
 		test_sigs []signature.TraceRingSignature
 		message   string
@@ -27,7 +32,7 @@ func TestVerify(t *testing.T) {
 		C         []big.Int
 		R         []big.Int
 	)
-	scanner := bufio.NewScanner(testFile)
+	scanner := bufio.NewScanner(testFileTrue)
 	for scanner.Scan() {
 		Pub_keys = *new([]point.Point)
 		C = *new([]big.Int)
@@ -87,6 +92,70 @@ func TestVerify(t *testing.T) {
 	}
 	if k != 100 {
 		t.Errorf("must be 100 valid signatures")
+	}
+
+	scanner = bufio.NewScanner(testFileFalse)
+	index := 0
+	for scanner.Scan() {
+		Pub_keys = *new([]point.Point)
+		C = *new([]big.Int)
+		R = *new([]big.Int)
+		message = scanner.Text()
+		scanner.Scan()
+		curve = signature.StringToCurve(scanner.Text())
+		scanner.Scan()
+		n, err = strconv.Atoi(scanner.Text())
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i := 0; i < n; i++ {
+			scanner.Scan()
+			Pub_keys = append(Pub_keys, curve.StringToPoint(scanner.Text()))
+		}
+		scanner.Scan()
+		I = curve.StringToPoint(scanner.Text())
+		scanner.Scan()
+		n, err = strconv.Atoi(scanner.Text())
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i := 0; i < n; i++ {
+			scanner.Scan()
+			c_i, _ := big.NewInt(0).SetString(scanner.Text(), 0)
+			C = append(C, *c_i)
+		}
+		scanner.Scan()
+		n, err = strconv.Atoi(scanner.Text())
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i := 0; i < n; i++ {
+			scanner.Scan()
+			r_i, _ := big.NewInt(0).SetString(scanner.Text(), 0)
+			R = append(R, *r_i)
+		}
+		new_sig := signature.TraceRingSignature{
+			Message:  message,
+			Curve:    curve,
+			Pub_keys: Pub_keys,
+			I:        I,
+			C:        C,
+			R:        R,
+		}
+		test_sigs[index] = new_sig
+		index++
+	}
+	k = 0
+	verif = false
+	for i := 0; i < 100; i++ {
+		verif = signature.Verify(test_sigs[i])
+		if verif {
+			t.Errorf("all test signature must be invalid")
+		}
+		k++
+	}
+	if k != 100 {
+		t.Errorf("must be 100 invalid signatures")
 	}
 
 }

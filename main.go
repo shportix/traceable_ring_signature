@@ -12,9 +12,9 @@ import (
 func main() {
 	curveECC := curves.Secp256k1
 	k := 0
-	priv_key, pub_key := signature.Gen_keys(curveECC)
+
 	for i := 0; i < 100; i++ {
-		verif := false
+		verif := true
 		message_big, _ := rand.Int(rand.Reader, curveECC.GetOrder())
 		message := message_big.String()
 		big_n, _ := rand.Int(rand.Reader, big.NewInt(100))
@@ -23,6 +23,8 @@ func main() {
 		s_big, _ := rand.Int(rand.Reader, big_n)
 		s := int(s_big.Uint64())
 		ring := make([]point.Point, n)
+		priv_key, pub_key := signature.Gen_keys(curveECC)
+		priv_key, _ = signature.Gen_keys(curveECC)
 		for j := 0; j < n; j++ {
 			if j == s {
 				ring[j] = pub_key
@@ -32,7 +34,7 @@ func main() {
 		}
 		new_signature := signature.Sign(curveECC, message, ring, s, *priv_key)
 		verif = signature.Verify(new_signature)
-		if verif {
+		if !verif {
 			k++
 		}
 
