@@ -24,8 +24,8 @@ type Curve interface {
 }
 
 type TraceRingSignature struct {
-	message  string
-	curve    Curve
+	Message  string
+	Curve    Curve
 	Pub_keys []point.Point
 	I        point.Point
 	C        []big.Int
@@ -116,8 +116,8 @@ func Sign(curve Curve, message string, pub_keys []point.Point, s int, prive_key 
 	r[s].Mod(&r[s], curve.GetOrder())
 	C.Mod(C, curve.GetOrder())
 	signature := TraceRingSignature{
-		curve:    curve,
-		message:  message,
+		Curve:    curve,
+		Message:  message,
 		Pub_keys: pub_keys,
 		I:        I,
 		C:        c,
@@ -133,24 +133,26 @@ func Verify(signature TraceRingSignature) bool {
 	sum := big.NewInt(0)
 	for i := 0; i < n; i++ {
 		sum.Add(sum, &signature.C[i])
-		L[i] = signature.curve.AddPoints(signature.curve.ScalarMult(signature.curve.BasePointGGet(), signature.R[i]), signature.curve.ScalarMult(signature.Pub_keys[i], signature.C[i]))
-		R[i] = signature.curve.AddPoints(signature.curve.ScalarMult(H_p(signature.Pub_keys[i], signature.curve), signature.R[i]), signature.curve.ScalarMult(signature.I, signature.C[i]))
+		L[i] = signature.Curve.AddPoints(signature.Curve.ScalarMult(signature.Curve.BasePointGGet(), signature.R[i]), signature.Curve.ScalarMult(signature.Pub_keys[i], signature.C[i]))
+		R[i] = signature.Curve.AddPoints(signature.Curve.ScalarMult(H_p(signature.Pub_keys[i], signature.Curve), signature.R[i]), signature.Curve.ScalarMult(signature.I, signature.C[i]))
 	}
-	txt := signature.message
+	txt := signature.Message
 	for i := 0; i < n; i++ {
-		txt += signature.curve.PointToString(L[i]) + signature.curve.PointToString(R[i])
+		txt += signature.Curve.PointToString(L[i]) + signature.Curve.PointToString(R[i])
 	}
 	C := new(big.Int)
 	C.SetString(fmt.Sprintf("%X", SHA256StringToString(txt)), 16)
-	C.Mod(C, signature.curve.GetOrder())
-	sum = sum.Mod(sum, signature.curve.GetOrder())
+	C.Mod(C, signature.Curve.GetOrder())
+	sum = sum.Mod(sum, signature.Curve.GetOrder())
 	res := C.Cmp(sum) == 0
 	if res {
 		var sigFile *os.File
-		_, err := os.Stat("signatures.txt")
+		// test_secp256k1_link.txt
+		file_name := "signatures.txt"
+		_, err := os.Stat(file_name)
 		if err != nil {
 			if os.IsNotExist(err) {
-				sigFile, err = os.Create("signatures.txt")
+				sigFile, err = os.Create(file_name)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -159,21 +161,21 @@ func Verify(signature TraceRingSignature) bool {
 				log.Fatal(err)
 			}
 		}
-		sigFile, err = os.OpenFile("signatures.txt", os.O_APPEND|os.O_WRONLY, 0644)
+		sigFile, err = os.OpenFile(file_name, os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer sigFile.Close()
 		textWriter := bufio.NewWriter(sigFile)
 
-		WriteToFile(textWriter, signature.message)
-		WriteToFile(textWriter, signature.curve.CurveToString())
+		WriteToFile(textWriter, signature.Message)
+		WriteToFile(textWriter, signature.Curve.CurveToString())
 		n := len(signature.Pub_keys)
 		WriteToFile(textWriter, strconv.Itoa(n))
 		for i := 0; i < n; i++ {
-			WriteToFile(textWriter, signature.curve.PointToString(signature.Pub_keys[i]))
+			WriteToFile(textWriter, signature.Curve.PointToString(signature.Pub_keys[i]))
 		}
-		WriteToFile(textWriter, signature.curve.PointToString(signature.I))
+		WriteToFile(textWriter, signature.Curve.PointToString(signature.I))
 		n = len(signature.C)
 		WriteToFile(textWriter, strconv.Itoa(n))
 		for i := 0; i < n; i++ {
@@ -255,8 +257,8 @@ func Link(signature TraceRingSignature) (linked_sig []TraceRingSignature) {
 			R = append(R, *r_i)
 		}
 		new_sig := TraceRingSignature{
-			message:  message,
-			curve:    curve,
+			Message:  message,
+			Curve:    curve,
 			Pub_keys: Pub_keys,
 			I:        I,
 			C:        C,
@@ -266,8 +268,8 @@ func Link(signature TraceRingSignature) (linked_sig []TraceRingSignature) {
 
 	}
 	for i := 0; i < len(buf); i++ {
-		buf_I := buf[i].curve.PointToString(buf[i].I)
-		if (buf[i].curve.CurveToString() == signature.curve.CurveToString()) && (buf_I == signature.curve.PointToString(signature.I)) {
+		buf_I := buf[i].Curve.PointToString(buf[i].I)
+		if (buf[i].Curve.CurveToString() == signature.Curve.CurveToString()) && (buf_I == signature.Curve.PointToString(signature.I)) {
 			linked_sig = append(linked_sig, buf[i])
 		}
 	}
