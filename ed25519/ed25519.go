@@ -60,18 +60,20 @@ func (c EdCurve) ScalarMult(a point.Point, k big.Int) point.Point {
 	k_bytes := k.Bytes()
 	buf := make([]byte, 32)
 	if len(k_bytes) < 32 {
-		for i := 31; i > len(k_bytes)-1; i-- {
+		shift := 32 - len(k_bytes)
+		for i := 0; i < shift; i++ {
 			buf[i] = 0
 		}
-		for i := 0; i < len(k_bytes); i++ {
-			buf[i] = k_bytes[i]
+		for i := shift; i < 32; i++ {
+			buf[i] = k_bytes[i-shift]
 		}
 		k_bytes = buf
 	}
+	invers_buf := make([]byte, 32)
 	for i := 0; i < 32; i++ {
-		buf[i] = k_bytes[31-i]
+		invers_buf[i] = k_bytes[31-i]
 	}
-	k_bytes = buf
+	k_bytes = invers_buf
 	k_scal, err := k_scal.SetCanonicalBytes(k_bytes)
 	if err != nil {
 		fmt.Println(err)
