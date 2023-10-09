@@ -6,7 +6,7 @@ Project is devided on 6 parts:
 -signature
 -signature_test
 
-#signature
+# signature
 This part consists implementation of main functionality:
 - function Gen_keys() generate key pair for signing 
 - function Sign() signing message 
@@ -15,17 +15,17 @@ This part consists implementation of main functionality:
 - Curve is interface for all curves
 - TraceRingSignature is struct for signature
 
-#eccsecp256k1
+# eccsecp256k1
 Implementation of secp256k1 curve
 
-#ed25519
+# ed25519
 Implementation of ed25519 curve
 
-#point
+# point
 Implementation of interface for all curves points
 
-#curves
+# curves
 Library of curves
 
-#signature_test
+# signature_test
 Implementation of tests
