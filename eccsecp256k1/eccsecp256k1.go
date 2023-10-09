@@ -1,4 +1,4 @@
-package ecc
+package eccsecp256k1
 
 import (
 	"fmt"
