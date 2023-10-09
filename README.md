@@ -1,9 +1,14 @@
 Project is devided on 6 parts:
 -curves
+
 -eccsecp256k1
+
 -ed25519
+
 -point
+
 -signature
+
 -signature_test
 
 # signature
