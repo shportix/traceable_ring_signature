@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
-	"log"
 	"math/big"
 	"os"
 	"strconv"
@@ -19,7 +18,7 @@ type Curve interface {
 	AddPoints(a, b point.Point) point.Point
 	ScalarMult(a point.Point, k big.Int) point.Point
 	PointToString(point point.Point) (s string)
-	StringToPoint(string) point.Point
+	StringToPoint(string) (point.Point, error)
 	CurveToString() string
 }
 
@@ -41,12 +40,13 @@ func StringToCurve(s string) (curve Curve) {
 	return
 }
 
-func WriteToFile(textWriter *bufio.Writer, s string) {
+func WriteToFile(textWriter *bufio.Writer, s string) error {
 	_, err := textWriter.WriteString(s + "\n")
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("...%w...", err)
 	}
 	textWriter.Flush()
+	return nil
 }
 
 func SHA256StringToString(message string) (digest string) {
@@ -126,7 +126,7 @@ func Sign(curve Curve, message string, pub_keys []point.Point, s int, prive_key 
 	return signature
 }
 
-func Verify(signature TraceRingSignature) bool {
+func Verify(signature TraceRingSignature) (bool, error) {
 	n := len(signature.Pub_keys)
 	L := make([]point.Point, n)
 	R := make([]point.Point, n)
@@ -154,16 +154,16 @@ func Verify(signature TraceRingSignature) bool {
 			if os.IsNotExist(err) {
 				sigFile, err = os.Create(file_name)
 				if err != nil {
-					log.Fatal(err)
+					return false, fmt.Errorf("...%w...", err)
 				}
 				sigFile.Close()
 			} else {
-				log.Fatal(err)
+				return false, fmt.Errorf("...%w...", err)
 			}
 		}
 		sigFile, err = os.OpenFile(file_name, os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
-			log.Fatal(err)
+			return false, fmt.Errorf("...%w...", err)
 		}
 		defer sigFile.Close()
 		textWriter := bufio.NewWriter(sigFile)
@@ -189,94 +189,16 @@ func Verify(signature TraceRingSignature) bool {
 
 	}
 
-	return res
+	return res, nil
 
 }
 
-func Link(signature TraceRingSignature) (linked_sig []TraceRingSignature) {
-	var (
-		buf      []TraceRingSignature
-		message  string
-		curve    Curve
-		n        int
-		Pub_keys []point.Point
-		I        point.Point
-		C        []big.Int
-		R        []big.Int
-	)
-	_, err := os.Stat("signatures.txt")
-	if err != nil {
-		if os.IsNotExist(err) {
-			return
-		} else {
-			log.Fatal(err)
+func Link(signature TraceRingSignature, check_signayures []TraceRingSignature) (linked_sig []TraceRingSignature) {
+	for i := 0; i < len(check_signayures); i++ {
+		buf_I := check_signayures[i].Curve.PointToString(check_signayures[i].I)
+		if (check_signayures[i].Curve.CurveToString() == signature.Curve.CurveToString()) && (buf_I == signature.Curve.PointToString(signature.I)) {
+			linked_sig = append(linked_sig, check_signayures[i])
 		}
 	}
-	file, err := os.Open("signatures.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		Pub_keys = *new([]point.Point)
-		C = *new([]big.Int)
-		R = *new([]big.Int)
-		message = scanner.Text()
-		scanner.Scan()
-		curve = StringToCurve(scanner.Text())
-		scanner.Scan()
-		n, err = strconv.Atoi(scanner.Text())
-		if err != nil {
-			log.Fatal(err)
-		}
-		for i := 0; i < n; i++ {
-			scanner.Scan()
-			Pub_keys = append(Pub_keys, curve.StringToPoint(scanner.Text()))
-		}
-		scanner.Scan()
-		I = curve.StringToPoint(scanner.Text())
-		scanner.Scan()
-		n, err = strconv.Atoi(scanner.Text())
-		if err != nil {
-			log.Fatal(err)
-		}
-		for i := 0; i < n; i++ {
-			scanner.Scan()
-			c_i, _ := big.NewInt(0).SetString(scanner.Text(), 0)
-			C = append(C, *c_i)
-		}
-		scanner.Scan()
-		n, err = strconv.Atoi(scanner.Text())
-		if err != nil {
-			log.Fatal(err)
-		}
-		for i := 0; i < n; i++ {
-			scanner.Scan()
-			r_i, _ := big.NewInt(0).SetString(scanner.Text(), 0)
-			R = append(R, *r_i)
-		}
-		new_sig := TraceRingSignature{
-			Message:  message,
-			Curve:    curve,
-			Pub_keys: Pub_keys,
-			I:        I,
-			C:        C,
-			R:        R,
-		}
-		buf = append(buf, new_sig)
-
-	}
-	for i := 0; i < len(buf); i++ {
-		buf_I := buf[i].Curve.PointToString(buf[i].I)
-		if (buf[i].Curve.CurveToString() == signature.Curve.CurveToString()) && (buf_I == signature.Curve.PointToString(signature.I)) {
-			linked_sig = append(linked_sig, buf[i])
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
 	return
 }

@@ -2,8 +2,6 @@ package signature_test
 
 import (
 	"bufio"
-	"io"
-	"log"
 	"math/big"
 	"os"
 	"strconv"
@@ -15,12 +13,12 @@ import (
 func TestVerify(t *testing.T) {
 	testFileTrue, err := os.Open("test_secp256k1_true.txt")
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf(err.Error())
 	}
 	defer testFileTrue.Close()
 	testFileFalse, err := os.Open("test_secp256k1_false.txt")
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf("Can`t open file test_secp256k1_false.txt")
 	}
 	defer testFileFalse.Close()
 	var (
@@ -44,18 +42,19 @@ func TestVerify(t *testing.T) {
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
-			Pub_keys = append(Pub_keys, curve.StringToPoint(scanner.Text()))
+			p, _ := curve.StringToPoint(scanner.Text())
+			Pub_keys = append(Pub_keys, p)
 		}
 		scanner.Scan()
-		I = curve.StringToPoint(scanner.Text())
+		I, _ = curve.StringToPoint(scanner.Text())
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
@@ -65,7 +64,7 @@ func TestVerify(t *testing.T) {
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
@@ -85,7 +84,7 @@ func TestVerify(t *testing.T) {
 	k := 0
 	verif := false
 	for i := 0; i < 100; i++ {
-		verif = signature.Verify(test_sigs[i])
+		verif, _ = signature.Verify(test_sigs[i])
 		if !verif {
 			t.Errorf("all test signature must be valid")
 		}
@@ -107,18 +106,19 @@ func TestVerify(t *testing.T) {
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
-			Pub_keys = append(Pub_keys, curve.StringToPoint(scanner.Text()))
+			p, _ := curve.StringToPoint(scanner.Text())
+			Pub_keys = append(Pub_keys, p)
 		}
 		scanner.Scan()
-		I = curve.StringToPoint(scanner.Text())
+		I, _ = curve.StringToPoint(scanner.Text())
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
@@ -128,7 +128,7 @@ func TestVerify(t *testing.T) {
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
@@ -149,7 +149,7 @@ func TestVerify(t *testing.T) {
 	k = 0
 	verif = false
 	for i := 0; i < 100; i++ {
-		verif = signature.Verify(test_sigs[i])
+		verif, _ = signature.Verify(test_sigs[i])
 		if verif {
 			t.Errorf("all test signature must be invalid")
 		}
@@ -161,12 +161,12 @@ func TestVerify(t *testing.T) {
 
 	testFileTrueED, err := os.Open("test_ed25519_true.txt")
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf(err.Error())
 	}
 	defer testFileTrueED.Close()
 	testFileFalseED, err := os.Open("test_ed25519_false.txt")
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf(err.Error())
 	}
 	defer testFileFalseED.Close()
 	// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,18 +182,19 @@ func TestVerify(t *testing.T) {
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
-			Pub_keys = append(Pub_keys, curve.StringToPoint(scanner.Text()))
+			p, _ := curve.StringToPoint(scanner.Text())
+			Pub_keys = append(Pub_keys, p)
 		}
 		scanner.Scan()
-		I = curve.StringToPoint(scanner.Text())
+		I, _ = curve.StringToPoint(scanner.Text())
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
@@ -203,7 +204,7 @@ func TestVerify(t *testing.T) {
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
@@ -224,7 +225,7 @@ func TestVerify(t *testing.T) {
 	k = 0
 	verif = false
 	for i := 0; i < 100; i++ {
-		verif = signature.Verify(test_sigs[i])
+		verif, _ = signature.Verify(test_sigs[i])
 		if !verif {
 			t.Errorf("all test signature must be valid")
 		}
@@ -246,18 +247,19 @@ func TestVerify(t *testing.T) {
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
-			Pub_keys = append(Pub_keys, curve.StringToPoint(scanner.Text()))
+			p, _ := curve.StringToPoint(scanner.Text())
+			Pub_keys = append(Pub_keys, p)
 		}
 		scanner.Scan()
-		I = curve.StringToPoint(scanner.Text())
+		I, _ = curve.StringToPoint(scanner.Text())
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
@@ -267,7 +269,7 @@ func TestVerify(t *testing.T) {
 		scanner.Scan()
 		n, err = strconv.Atoi(scanner.Text())
 		if err != nil {
-			log.Fatal(err)
+			t.Errorf(err.Error())
 		}
 		for i := 0; i < n; i++ {
 			scanner.Scan()
@@ -288,7 +290,7 @@ func TestVerify(t *testing.T) {
 	k = 0
 	verif = false
 	for i := 0; i < 100; i++ {
-		verif = signature.Verify(test_sigs[i])
+		verif, _ = signature.Verify(test_sigs[i])
 		if verif {
 			t.Errorf("all test signature must be invalid")
 		}
@@ -300,47 +302,10 @@ func TestVerify(t *testing.T) {
 }
 
 func TestLink(t *testing.T) {
-	var sigFile, testFile *os.File
-	file_name := "signatures.txt"
-	_, err := os.Stat(file_name)
-	exist := true
-	if err != nil {
-		if os.IsNotExist(err) {
-			exist = false
-		} else {
-			log.Fatal(err)
-		}
-	}
-	if exist {
-		err = os.Remove(file_name)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	sigFile, err = os.Create(file_name)
-	if err != nil {
-		log.Fatal(err)
-	}
-	testFile, err = os.Open("test_link.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer testFile.Close()
-	_, err = io.Copy(sigFile, testFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = sigFile.Sync()
-	if err != nil {
-		log.Fatal(err)
-	}
-	sigFile.Close()
-	sigFile, err = os.Open("signatures.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer sigFile.Close()
-	scanner := bufio.NewScanner(sigFile)
+	var file *os.File
+	file_name := "test_link.txt"
+	file, err := os.Open(file_name)
+	scanner := bufio.NewScanner(file)
 	var (
 		message  string
 		curve    signature.Curve
@@ -357,18 +322,19 @@ func TestLink(t *testing.T) {
 	scanner.Scan()
 	n, err = strconv.Atoi(scanner.Text())
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf(err.Error())
 	}
 	for i := 0; i < n; i++ {
 		scanner.Scan()
-		Pub_keys = append(Pub_keys, curve.StringToPoint(scanner.Text()))
+		p, _ := curve.StringToPoint(scanner.Text())
+		Pub_keys = append(Pub_keys, p)
 	}
 	scanner.Scan()
-	I = curve.StringToPoint(scanner.Text())
+	I, _ = curve.StringToPoint(scanner.Text())
 	scanner.Scan()
 	n, err = strconv.Atoi(scanner.Text())
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf(err.Error())
 	}
 	for i := 0; i < n; i++ {
 		scanner.Scan()
@@ -378,7 +344,7 @@ func TestLink(t *testing.T) {
 	scanner.Scan()
 	n, err = strconv.Atoi(scanner.Text())
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf(err.Error())
 	}
 	for i := 0; i < n; i++ {
 		scanner.Scan()
@@ -393,8 +359,59 @@ func TestLink(t *testing.T) {
 		C:        C,
 		R:        R,
 	}
-	sigs := signature.Link(linked_sig)
-	if len(sigs) != 100 {
+	var other_sigs []signature.TraceRingSignature
+	for scanner.Scan() {
+		Pub_keys = *new([]point.Point)
+		C = *new([]big.Int)
+		R = *new([]big.Int)
+		message = scanner.Text()
+		scanner.Scan()
+		curve = signature.StringToCurve(scanner.Text())
+		scanner.Scan()
+		n, err = strconv.Atoi(scanner.Text())
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+		for i := 0; i < n; i++ {
+			scanner.Scan()
+			p, _ := curve.StringToPoint(scanner.Text())
+			Pub_keys = append(Pub_keys, p)
+		}
+		scanner.Scan()
+		I, _ = curve.StringToPoint(scanner.Text())
+		scanner.Scan()
+		n, err = strconv.Atoi(scanner.Text())
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+		for i := 0; i < n; i++ {
+			scanner.Scan()
+			c_i, _ := big.NewInt(0).SetString(scanner.Text(), 0)
+			C = append(C, *c_i)
+		}
+		scanner.Scan()
+		n, err = strconv.Atoi(scanner.Text())
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+		for i := 0; i < n; i++ {
+			scanner.Scan()
+			r_i, _ := big.NewInt(0).SetString(scanner.Text(), 0)
+			R = append(R, *r_i)
+		}
+		new_sig := signature.TraceRingSignature{
+			Message:  message,
+			Curve:    curve,
+			Pub_keys: Pub_keys,
+			I:        I,
+			C:        C,
+			R:        R,
+		}
+		other_sigs = append(other_sigs, new_sig)
+
+	}
+	sigs := signature.Link(linked_sig, other_sigs)
+	if len(sigs) != 99 {
 		t.Errorf("Link function faild")
 	}
 }

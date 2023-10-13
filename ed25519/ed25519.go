@@ -3,7 +3,6 @@ package ed25519
 import (
 	"encoding/hex"
 	"fmt"
-	"log"
 	"math/big"
 	"trace_ring_sig/point"
 
@@ -41,8 +40,7 @@ func (c EdCurve) GetOrder() *big.Int {
 
 func (c EdCurve) BasePointGGet() point.Point {
 	ed_point := *edwards25519.NewGeneratorPoint()
-	p := EdPoint{ed_point}
-	return p
+	return EdPoint{ed_point}
 }
 
 func (c EdCurve) AddPoints(a, b point.Point) point.Point {
@@ -50,8 +48,7 @@ func (c EdCurve) AddPoints(a, b point.Point) point.Point {
 	a_p := a.Point()
 	b_p := b.Point()
 	v.Add(&a_p, &b_p)
-	p := EdPoint{*v}
-	return p
+	return EdPoint{*v}
 }
 
 func (c EdCurve) ScalarMult(a point.Point, k big.Int) point.Point {
@@ -80,32 +77,29 @@ func (c EdCurve) ScalarMult(a point.Point, k big.Int) point.Point {
 	}
 	a_p := a.Point()
 	v.ScalarMult(k_scal, &a_p)
-	p := EdPoint{*v}
-	return p
+	return EdPoint{*v}
 }
 
 func (c EdCurve) PointToString(point point.Point) (s string) {
 	point_p := point.Point()
 	point_bytes := point_p.Bytes()
-	s = fmt.Sprintf("%X", point_bytes)
-	return
+	return fmt.Sprintf("%X", point_bytes)
 }
 
-func (c EdCurve) StringToPoint(s string) point.Point {
+func (c EdCurve) StringToPoint(s string) (point.Point, error) {
 	s_b, err := hex.DecodeString(s)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("...%w...", err)
 	}
 	p := *new(edwards25519.Point)
 	_, err = p.SetBytes(s_b)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("...%w...", err)
 	}
 	point := EdPoint{point: p}
-	return point
+	return point, nil
 }
 
 func (c EdCurve) CurveToString() (s string) {
-	s = "ed25519"
-	return
+	return "ed25519"
 }

@@ -26,7 +26,7 @@ func main() {
 	}
 	scepcSig := signature.Sign(curveSC, mess, ring, s, *priv_key)
 	verif := false
-	verif = signature.Verify(scepcSig)
+	verif, _ = signature.Verify(scepcSig)
 	fmt.Println("Secp256k1:", verif)
 	curveED := curves.Ed25519
 	priv_key, pub_key = signature.Gen_keys(curveED)
@@ -40,7 +40,7 @@ func main() {
 
 	}
 	sigED := signature.Sign(curveED, mess, ring, s, *priv_key)
-	verif = signature.Verify(sigED)
+	verif, _ = signature.Verify(sigED)
 	fmt.Println("Ed25519:", verif)
 	mess = "77879"
 	for i := 0; i < 10; i++ {
@@ -53,7 +53,4 @@ func main() {
 
 	}
 	sigED = signature.Sign(curveED, mess, ring, s, *priv_key)
-	verif = signature.Verify(sigED)
-	lin := signature.Link(sigED)
-	fmt.Println(len(lin))
 }
