@@ -1,4 +1,4 @@
-module trace_ring_sig
+module github.com/shportix/traceable_ring_signature
 
 go 1.21.1
 

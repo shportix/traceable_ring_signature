@@ -4,7 +4,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"trace_ring_sig/point"
+
+	"github.com/shportix/traceable_ring_signature/point"
 
 	"filippo.io/edwards25519"
 )

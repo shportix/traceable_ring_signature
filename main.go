@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"trace_ring_sig/curves"
-	"trace_ring_sig/point"
-	"trace_ring_sig/signature"
+
+	"github.com/shportix/traceable_ring_signature/curves"
+	"github.com/shportix/traceable_ring_signature/point"
+	"github.com/shportix/traceable_ring_signature/signature"
 )
 
 func main() {
@@ -42,15 +43,4 @@ func main() {
 	sigED := signature.Sign(curveED, mess, ring, s, *priv_key)
 	verif, _ = signature.Verify(sigED)
 	fmt.Println("Ed25519:", verif)
-	mess = "77879"
-	for i := 0; i < 10; i++ {
-		if i != s {
-			_, ring_key = signature.Gen_keys(curveED)
-			ring[i] = ring_key
-		} else {
-			ring[i] = pub_key
-		}
-
-	}
-	sigED = signature.Sign(curveED, mess, ring, s, *priv_key)
 }

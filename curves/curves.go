@@ -1,8 +1,8 @@
 package curves
 
 import (
-	"trace_ring_sig/eccsecp256k1"
-	"trace_ring_sig/ed25519"
+	"github.com/shportix/traceable_ring_signature/eccsecp256k1"
+	"github.com/shportix/traceable_ring_signature/ed25519"
 
 	"github.com/ubiq/go-ubiq/crypto/secp256k1"
 )

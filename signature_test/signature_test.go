@@ -6,8 +6,9 @@ import (
 	"os"
 	"strconv"
 	"testing"
-	"trace_ring_sig/point"
-	"trace_ring_sig/signature"
+
+	"github.com/shportix/traceable_ring_signature/point"
+	"github.com/shportix/traceable_ring_signature/signature"
 )
 
 func TestVerify(t *testing.T) {

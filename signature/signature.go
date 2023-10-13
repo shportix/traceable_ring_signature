@@ -8,8 +8,9 @@ import (
 	"math/big"
 	"os"
 	"strconv"
-	"trace_ring_sig/curves"
-	"trace_ring_sig/point"
+
+	"github.com/shportix/traceable_ring_signature/curves"
+	"github.com/shportix/traceable_ring_signature/point"
 )
 
 type Curve interface {
